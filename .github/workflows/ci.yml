@@ -45,7 +45,7 @@ jobs:
     with:
       environment_label: ${{ inputs.target_env || 'poc-staging' }}
       caller_project_name: "DemoApp"
-      run_diagnostics: ${{ inputs.debug_mode ?? true }}
+      run_diagnostics: ${{ inputs.debug_mode != false }}
 
   # Downstream job in the caller repository consuming outputs from the central workflow
   verify-downstream:
