@@ -41,7 +41,7 @@ jobs:
   # Pinning: Uses semantic version tag '@v1' (or immutable SHA for production security).
   call-central-workflow:
     name: "Invoke Central ARC Workflow"
-    uses: royknef/central-workflows/.github/workflows/arc-runtime.yml@v1
+    uses: royknef/central-workflows/.github/workflows/arc-runtime.yml@v2
     with:
       environment_label: ${{ inputs.target_env || 'poc-staging' }}
       caller_project_name: "DemoApp"
