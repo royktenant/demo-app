@@ -1,0 +1,64 @@
+name: "Application CI [Caller Workflow]"
+
+# ==============================================================================
+# Application Caller Workflow
+# Hosted in Organisation B: demo-app/.github/workflows/ci.yml
+# Invokes: Central Reusable Workflow hosted in Organisation A
+# Execution: Routed to Organisation B's ARC Runner Scale Set in Kubernetes
+# ==============================================================================
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Target environment to test"
+        required: false
+        default: "poc-staging"
+        type: choice
+        options:
+          - poc-dev
+          - poc-staging
+          - poc-prod
+      debug_mode:
+        description: "Run diagnostics on the Kubernetes runner"
+        required: false
+        default: true
+        type: boolean
+
+# Explicit least-privilege permissions
+permissions:
+  contents: read
+
+jobs:
+  # Caller job invoking the central reusable workflow across organisations.
+  # Replace 'YOUR_ORG_A' with your actual Organisation A name or GitHub handle.
+  # Pinning: Uses semantic version tag '@v1' (or immutable SHA for production security).
+  call-central-workflow:
+    name: "Invoke Central ARC Workflow"
+    uses: royknef/central-workflows/.github/workflows/arc-runtime.yml@v1
+    with:
+      environment_label: ${{ inputs.target_env || 'poc-staging' }}
+      caller_project_name: "DemoApp"
+      run_diagnostics: ${{ inputs.debug_mode ?? true }}
+
+  # Downstream job in the caller repository consuming outputs from the central workflow
+  verify-downstream:
+    name: "Post-Execution Verification"
+    needs: call-central-workflow
+    runs-on: arc-poc-runners
+    steps:
+      - name: "Log Completion Status"
+        run: |
+          echo "=========================================================="
+          echo " Central Reusable Workflow Call Completed Successfully!   "
+          echo "=========================================================="
+          echo "Central Job Status:  ${{ needs.call-central-workflow.outputs.execution_status }}"
+          echo "Pod Hostname Used:   ${{ needs.call-central-workflow.outputs.runner_hostname }}"
+          echo "Caller Timestamp:    $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          echo "=========================================================="
