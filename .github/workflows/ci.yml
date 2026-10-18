@@ -35,10 +35,16 @@ on:
 permissions:
   contents: read
 
+# ==============================================================================
+# Define the runner scale set in ONE place here using a YAML anchor (&runner).
+# Whenever you want to switch between 'arc-app-runners' and 'arc-poc-runners',
+# simply edit this single line below:
+# ==============================================================================
+env:
+  RUNNER_NAME: &runner arc-app-runners
+
 jobs:
   # Caller job invoking the central reusable workflow across organisations.
-  # Replace 'YOUR_ORG_A' with your actual Organisation A name or GitHub handle.
-  # Pinning: Uses semantic version tag '@v1' (or immutable SHA for production security).
   call-central-workflow:
     name: "Invoke Central ARC Workflow"
     uses: royknef/central-workflows/.github/workflows/arc-runtime.yml@v2
@@ -46,13 +52,13 @@ jobs:
       environment_label: ${{ inputs.target_env || 'poc-staging' }}
       caller_project_name: "DemoApp"
       run_diagnostics: ${{ inputs.debug_mode != false }}
-      runner_scale_set: "arc-app-runners"
+      runner_scale_set: *runner
 
   # Downstream job in the caller repository consuming outputs from the central workflow
   verify-downstream:
     name: "Post-Execution Verification"
     needs: call-central-workflow
-    runs-on: arc-app-runners
+    runs-on: *runner
     steps:
       - name: "Log Completion Status"
         run: |
