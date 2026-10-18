@@ -41,7 +41,7 @@ permissions:
 # simply edit this single line below:
 # ==============================================================================
 env:
-  RUNNER_NAME: &runner arc-app-runners
+  RUNNER_NAME: &runner arc-poc-runners
 
 jobs:
   # Caller job invoking the central reusable workflow across organisations.
