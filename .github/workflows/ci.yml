@@ -46,12 +46,13 @@ jobs:
       environment_label: ${{ inputs.target_env || 'poc-staging' }}
       caller_project_name: "DemoApp"
       run_diagnostics: ${{ inputs.debug_mode != false }}
+      runner_scale_set: "arc-app-runners"
 
   # Downstream job in the caller repository consuming outputs from the central workflow
   verify-downstream:
     name: "Post-Execution Verification"
     needs: call-central-workflow
-    runs-on: arc-poc-runners
+    runs-on: arc-app-runners
     steps:
       - name: "Log Completion Status"
         run: |

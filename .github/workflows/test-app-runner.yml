@@ -1,0 +1,48 @@
+name: "Test GitHub App Runner [arc-app-runners]"
+
+# ==============================================================================
+# Verification workflow targeting the new GitHub App-authenticated runner scale set
+# Runner Scale Set Name: arc-app-runners
+# ==============================================================================
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      test_message:
+        description: "Custom test message"
+        required: false
+        default: "Testing GitHub App Runner Scale Set"
+
+permissions:
+  contents: read
+
+jobs:
+  test-app-scale-set:
+    name: "Verify GitHub App Runner"
+    runs-on: arc-app-runners
+    steps:
+      - name: "Log Execution Telemetry"
+        run: |
+          echo "=========================================================="
+          echo " SUCCESS: Ephemeral Pod spawned via GitHub App runner set!"
+          echo " Runner Scale Set: arc-app-runners                        "
+          echo " Pod Hostname:     $(hostname)                            "
+          echo " Runner User:      $(whoami) (UID: $(id -u))              "
+          echo " OS Info:          $(uname -s) $(uname -r) ($(uname -m))  "
+          echo " Custom Message:   ${{ inputs.test_message || 'Push trigger' }}"
+          echo " Timestamp:        $(date -u '+%Y-%m-%dT%H:%M:%SZ')       "
+          echo "=========================================================="
+
+      - name: "Validate Ephemeral Pod Filesystem & Resource Access"
+        run: |
+          echo "=== Verifying In-Pod Capabilities ==="
+          df -h /home/runner
+          echo "Testing temporary file creation..."
+          TEST_FILE=$(mktemp)
+          echo "Ephemeral pod write test: OK" > "$TEST_FILE"
+          cat "$TEST_FILE"
+          rm -f "$TEST_FILE"
+          echo "Verification completed successfully."
